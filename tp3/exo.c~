@@ -1,0 +1,7 @@
+#include <stdio.h>
+
+int mon_strlen(char[s])
+{
+  
+  return 0;
+}

@@ -1,0 +1,13 @@
+SRC=$(wildcard *.c)
+OBJS=$(SRC: .c=.o)
+AOUT=prog
+
+$(AOUT): $(OBJS)
+	gcc -o $@ $^
+
+
+%.o: %.c
+	gcc -Wall -Werror -W -c -o $@ $<
+
+clean:
+	rm -f *.o $(AOUT)
