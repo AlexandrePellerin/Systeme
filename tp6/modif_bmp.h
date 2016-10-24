@@ -1,0 +1,1 @@
+int lire_deux_octets(int fd, uint16 *val);
