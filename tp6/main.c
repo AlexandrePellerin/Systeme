@@ -3,6 +3,9 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 //#include "modif_bmp.h"
 #include "exo1.h"
 
@@ -79,6 +82,55 @@ int ecrire_entete(int vers, entete_bmp *entete)
 	}
 }
 
+int verifier_entete(entete_bmp *entete)
+{
+	if(entete->bitmap.profondeur==24){
+		return 1;
+	}else{
+		return 0;
+	}
+}
+
+unsigned char* allouer_pixels(entete_bmp *entete){
+	return (unsigned char*) malloc(entete->bitmap.taille_donnees_image*sizeof(char));
+}
+
+int lire_pixels(int de, entete_bmp *entete, unsigned char *pixels)
+{
+	int n=0;
+  if((n=lseek(de,entete->fichier.offset_donnees,SEEK_SET)>=0)){
+    if((n=read(de,pixels,entete->bitmap.taille_donnees_image))>=0){
+    return n;
+    }
+  }
+  return -1;
+}
+
+int ecrire_pixels(int vers, entete_bmp *entete, unsigned char *pixels){
+  int n=0;
+  if((n=lseek(vers,entete->fichier.offset_donnees,SEEK_SET)>=0)){
+    if((n=write(vers,pixels,entete->bitmap.taille_donnees_image))>=0){
+      return n;
+    }
+  }
+  return -1;
+}
+
+int copier_bmp(int de, int vers){
+  entete_bmp entete;
+  unsigned char *pixels;
+  /* lecture du fichier source */
+  lire_entete(de, &entete);
+  pixels = allouer_pixels(&entete);
+  lire_pixels(de, &entete, pixels);
+  /* écriture du fichier destination */
+  ecrire_entete(vers, &entete);
+  ecrire_pixels(vers, &entete, pixels);
+  /* on libère les pixels */
+  free(pixels);
+  return vers; /* on a réussi */
+}
+
 int main(int argc, char *argv[])
 {
 	entete_bmp entete;
@@ -91,7 +143,7 @@ int main(int argc, char *argv[])
 
 	int n = lire_entete(fd, &entete);
 
-	printf("%d\n",entete.fichier.signature);
+	printf("%x\n",entete.fichier.signature);
 	printf("%d\n",entete.fichier.taille_fichier);
 	printf("%d\n",entete.fichier.reserve);
 	printf("%d\n",entete.fichier.offset_donnees);
@@ -107,8 +159,18 @@ int main(int argc, char *argv[])
 	printf("%d\n",entete.bitmap.taille_palette);
 	printf("%d\n",entete.bitmap.nombre_de_couleurs_importantes);
 
-	if(fd2 >= 0){
+	/*if(fd2 >= 0){
 		n = ecrire_entete(fd2, &entete);
+	}*/
+
+	if(fd2 >= 0){
+		entete_bmp entete2;
+		lire_entete(fd2, &entete2);
+		printf("verif: %d\n",verifier_entete(&entete));
+		printf("verif: %d\n",verifier_entete(&entete2));
+		if(verifier_entete(&entete)){
+			copier_bmp(fd,fd2);
+		}
 	}
 	return n;
 }
