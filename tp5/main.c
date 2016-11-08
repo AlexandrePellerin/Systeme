@@ -58,39 +58,71 @@ int main(int argc, char * argv[])
 		printf("Mauvaise Utilisation.\n");
 		return 20;
 	}
+	
+	int cpt = argc - 1;
+	int car, mot, lig;
+	int totalCar = 0, totalMot = 0, totalLig = 0;
+	while(argv[cpt][0] != '-' && cpt>0){
+		//Lecture
+		int f = open(argv[cpt], O_RDONLY);
+		//Si la lecture c'est mal passe.
+		if(f == -1){
+			printf("Mauvaise Utilisation.");
+		}else{
 
-	int f = open(argv[2], O_RDONLY);
-	if(f == -1){
-		printf("Mauvaise Utilisation.\n");
-		return 30;
+			car = 0, mot = 0, lig = 0;
+			//Effectue le traitement du fichier
+			codeRetour = traiter(f, &car, &mot, &lig);
+			//Si le traitement s'est mal passe
+			if(codeRetour != 0){
+				printf("Mauvaise Utilisation.");
+			}else{
+				//Ferme le fichier
+				close(f);
+				int aff = 0;
+				//Affiche le nb de caracteres
+				if(nbArg[0] != 0){
+					printf("carac: %d ",car);
+					totalCar += car;
+					aff = 1;
+				}
+				//Affiche le nb de mots
+				if(nbArg[1] != 0){
+					printf("words: %d ",mot);
+					totalMot += mot;
+					aff = 1;
+				}
+				//Affiche le nb de lignes
+				if(nbArg[2] != 0){
+					printf("ligne: %d ",lig);
+					totalLig += lig;
+					aff = 1;
+				}
+				//Affiche le nb de caracteres, mots et lignes
+				if(aff == 0){
+					printf("carac: %d words: %d ligne: %d",car,mot,lig);
+				}
+			}
+		}
+		printf(" --> %s\n",argv[cpt]);
+		cpt--;
 	}
 
-	int car = 0, mot = 0, lig = 0;
-	codeRetour = traiter(f, &car, &mot, &lig);
-	if(codeRetour != 0){
-		printf("Mauvaise Utilisation.\n");
-		return 40;
+	if(cpt == argc-1){
+		//Saisie
+	}else{
+		//Total
+		if(totalCar != 0 && totalCar != car){
+			printf("%d ",totalCar);
+		}
+		if(totalMot != 0 && totalMot != mot){
+			printf("%d ",totalMot);
+		}
+		if(totalLig != 0 && totalLig != lig){
+			printf("%d ",totalLig);
+		}
+		printf("Total\n");
 	}
-
-	close(f);
-	int aff = 0;
-	if(nbArg[0] != 0){
-		printf("carac: %d ",car);
-		aff = 1;
-	}
-	if(nbArg[1] != 0){
-		printf("words: %d ",mot);
-		aff = 1;
-	}
-	if(nbArg[2] != 0){
-		printf("ligne: %d ",lig);
-		aff = 1;
-	}
-	if(aff == 0){
-		printf("carac: %d words: %d ligne: %d --> %s",car,mot,lig,argv[2]);
-	}
-	printf("\n");
-
-
+	
 	return 0;
 }
