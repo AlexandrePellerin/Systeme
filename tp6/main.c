@@ -154,30 +154,127 @@ void rouge(entete_bmp *entete, unsigned char *pixels)
   	} 
 } 
 
-int copier_bmp(int de, int vers){
-  entete_bmp entete;
-  unsigned char *pixels;
-  /* lecture du fichier source */
-  lire_entete(de, &entete);
-  pixels = allouer_pixels(&entete);
-  lire_pixels(de, &entete, pixels);
-  rouge(&entete, pixels);
-  /* écriture du fichier destination */
-  ecrire_entete(vers, &entete);
-  ecrire_pixels(vers, &entete, pixels);
-  /* on libère les pixels */
-  free(pixels);
-  return vers; /* on a réussi */
+void negatif(entete_bmp *entete, unsigned char *pixels){ 
+    int i;
+    for (i=0; i< (int)entete->bitmap.taille_donnees_image; i++) 
+    { 
+    		pixels[i]= ~pixels[i]; 
+    } 
+}
+
+void noir_et_blanc(entete_bmp *entete, unsigned char *pixels) { 
+	unsigned int i; 
+	int moyenne;
+	for (i=0; i< entete->bitmap.taille_donnees_image; i+=3) { 
+		moyenne = (pixels[i]+pixels[i+1]+pixels[i+2]); 
+		moyenne = moyenne/3; 
+		pixels[i] = moyenne; 
+		pixels[i+1]= moyenne; 
+		pixels[i+2] = moyenne;
+	} 
+}
+
+void moitie(entete_bmp *entete, unsigned char *pixels, int sup) { 
+  int i; 
+  int moitie = 0; 
+
+  if (sup) { 
+    moitie = entete->bitmap.taille_donnees_image/2; 
+  } 
+
+  for(i=0 ; i<(int)entete->bitmap.taille_donnees_image/2 ; i++) { 
+    pixels[i]= pixels[i+moitie]; 
+  } 
+  entete->bitmap.hauteur = entete->bitmap.hauteur / 2; 
+  entete->bitmap.taille_donnees_image = entete->bitmap.taille_donnees_image / 2; 
+}
+
+int copier_bmp(int de, int vers, int argc, char *argv[]){
+    entete_bmp entete;
+    unsigned char *pixels;
+    /* lecture du fichier source */
+    lire_entete(de, &entete);
+    pixels = allouer_pixels(&entete);
+    lire_pixels(de, &entete, pixels);
+
+ 	 /* Traitement des arguments */
+  	int i;
+    for( i = 1 ; i < argc-2  ; i++ ){
+		if( argv[i][1] == 'r' ){
+			rouge(&entete, pixels);
+		}else if( argv[i][1] == 'n' ){
+			negatif(&entete, pixels);
+		}else if( argv[i][1] == 'b' ){
+			noir_et_blanc(&entete, pixels);
+		}else if( argv[i][1] == 's' ){
+			moitie(&entete, pixels, 1);
+		}else if( argv[i][1] == 'i' ){
+  			moitie(&entete, pixels, 0);
+  		}
+ 	}
+  	/*printf("%d\n",tab[0]);
+	rouge(&entete, pixels);
+ 	negatif(&entete, pixels);
+ 	noir_et_blanc(&entete, pixels);
+ 	moitie(&entete, pixels, 1);*/
+
+	/* écriture du fichier destination */
+	ecrire_entete(vers, &entete);
+	ecrire_pixels(vers, &entete, pixels);
+	/* on libère les pixels */
+	free(pixels);
+	return vers; /* on a réussi */
+}
+
+int countArg(int argc, char *argv[], char* chaine,int rep[])
+{
+	int i,k, optVal;
+	int cpt = 1;
+	int lonChaine = strlen(chaine);
+	for(i = 1 ; i < argc ; i++){
+		if(argv[i][0]=='-'){
+			int lon = strlen(argv[i]);
+			if(lon != 2){
+				return -1;
+			}
+			optVal = -1;
+			for( k = 0 ; k < lonChaine ; k++){
+				if(argv[i][1]==chaine[k]){
+  		  			rep[k] = cpt;
+  		  			cpt++;
+  		  			optVal = 0;
+  	  			}
+  	  		}
+  	  		if(optVal == -1){
+  	  			return -1;
+  	  		}
+		}
+	}
+	return 0;
 }
 
 int main(int argc, char *argv[])
 {
 	//entete_bmp entete;
+	if(argv[argc-2][0]=='-' || argv[argc-1][0]=='-'){
+		printf("Mauvaise utilisation.\n");
+		return -1;
+	}
 
-	int fd = open(argv[1],O_RDONLY);
+	int fd = open(argv[argc-2],O_RDONLY);
 	int fd2 = -1;
 	if(argc > 1){
-		fd2 = open(argv[2],O_WRONLY);
+		fd2 = open(argv[argc-1],O_WRONLY);
+	}
+	if(fd < 0 || fd2 < 0){
+		printf("Mauvaise utilisation.\n");
+		return -1;
+	}
+
+	int nbArg[] = {0,0,0,0,0};
+	if(countArg(argc, argv, "rnbsi", nbArg)<0){
+		printf("Mauvaise utilisation.\n");
+		return -10;
 	}
 
 	/*int n = lire_entete(fd, &entete);
@@ -201,14 +298,13 @@ int main(int argc, char *argv[])
 	/*if(fd2 >= 0){
 		n = ecrire_entete(fd2, &entete);
 	}*/
-
 	if(fd2 >= 0){
 		//entete_bmp entete2;
 		//lire_entete(fd2, &entete2);
 		//printf("verif: %d\n",verifier_entete(&entete));
 		//printf("verif: %d\n",verifier_entete(&entete2));
 		//if(verifier_entete(&entete)){
-			copier_bmp(fd,fd2);
+			copier_bmp(fd,fd2,argc,argv);
 		//}
 	}
 	return 0;

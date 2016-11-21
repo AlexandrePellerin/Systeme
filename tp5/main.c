@@ -110,6 +110,33 @@ int main(int argc, char * argv[])
 
 	if(cpt == argc-1){
 		//Saisie
+		car = 0, mot = 0, lig = 0;
+		codeRetour = traiter(0, &car, &mot, &lig);
+		int aff = 0;
+		//Affiche le nb de caracteres
+		printf("\n");
+		if(nbArg[0] != 0){
+			printf("carac: %d ",car);
+			totalCar += car;
+			aff = 1;
+		}
+		//Affiche le nb de mots
+		if(nbArg[1] != 0){
+			printf("words: %d ",mot);
+			totalMot += mot;
+			aff = 1;
+		}
+		//Affiche le nb de lignes
+		if(nbArg[2] != 0){
+			printf("ligne: %d ",lig);
+			totalLig += lig;
+			aff = 1;
+		}
+		//Affiche le nb de caracteres, mots et lignes
+		if(aff == 0){
+			printf("carac: %d words: %d ligne: %d",car,mot,lig);
+		}
+		printf(" --> stdin\n");
 	}else{
 		//Total
 		if(totalCar != 0 && totalCar != car){
