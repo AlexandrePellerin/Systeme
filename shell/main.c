@@ -14,6 +14,13 @@ void ajouteApres(char *chaine, int n, char *directory, int len)
 	}
 }
 
+void nettoies(){
+	pid_t pid;
+	int status;
+
+	while( ( pid = waitpid( pid, &status, WNOHANG ) ) > 0 ){}
+}
+
 void affiche_prompt()
 {
 	char *directory = NULL;
@@ -48,15 +55,21 @@ int lance_commande(int in, int out, char *com, char **argv)
 	int pid = fork();
 	if( pid == 0 ){
 		if( in != 0 ){
-			if( close(0) == -1 || dup(in) == -1) return -1;
+			if(close(0)==-1||dup(in)==-1) return -1;
 		}
 		if( out != 1 ){
-			if( close(1) == -1 || dup(out) == -1) return -1;
+			if(close(1)==-1||dup(out)==-1) return -1;
 		}
-		execvp(com, argv);
-		perror("iutshell: commande introuvable.");
-		printf("La ligne de commande %s n'existe pas.\n", argv[0]);
-		exit(1);
+		if(strcmp(com, "cd") == 0){
+			// TODO
+			chdir();
+		}else{
+			execvp(com, argv);
+			perror("iutshell: commande introuvable.");
+			printf("La ligne de commande %s n'existe pas.\n", argv[0]);
+			exit(1);
+		}
+		return 0;
 	}else{
 		if(in != 0){
 			close(in);
@@ -82,8 +95,12 @@ void execute_ligne_commande()
 
 	int i;
 
+	nettoies();
+
 	if(flag < 0){
-		printf("Une erreur est survenue lors de la lecture de la commande.\n");
+		if(nb != 0){
+			printf("Une erreur est survenue lors de la lecture de la commande.\n");
+		}
 	}else{
 		for( i = 0 ; i < nb ; i++ ){
 			in = sin;

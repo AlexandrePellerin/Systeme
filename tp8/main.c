@@ -14,6 +14,13 @@ void ajouteApres(char *chaine, int n, char *directory, int len)
 	}
 }
 
+void nettoies(){
+	pid_t pid;
+	int status;
+
+	while( ( pid = waitpid( pid, &status, WNOHANG ) ) > 0 ){}
+}
+
 void affiche_prompt()
 {
 	char *directory = NULL;
@@ -48,6 +55,8 @@ void execute_ligne_commande()
 	int flag = -1, nb = -1;
 
 	char ***argv = ligne_commande( &flag, &nb );
+
+	nettoies();
 
 	if(flag < 0){
 		printf("Une erreur est survenue lors de la lecture de la commande.\n");
