@@ -18,7 +18,7 @@ void nettoies(){
 	pid_t pid;
 	int status;
 
-	while( ( pid = waitpid( pid, &status, WNOHANG ) ) > 0 ){}
+	while( ( pid = waitpid( pid, &status, WNOHANG ) ) > 0 ){printf("Processus mort\n");}
 }
 
 void affiche_prompt()
@@ -62,7 +62,7 @@ int lance_commande(int in, int out, char *com, char **argv)
 		}
 		if(strcmp(com, "cd") == 0){
 			// TODO
-			chdir();
+			//chdir();
 		}else{
 			execvp(com, argv);
 			perror("iutshell: commande introuvable.");
